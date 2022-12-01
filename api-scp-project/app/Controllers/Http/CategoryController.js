@@ -1,4 +1,5 @@
 'use strict'
+const Category = use('App/Models/Category');
 
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
@@ -18,6 +19,8 @@ class CategoryController {
    * @param {View} ctx.view
    */
   async index ({ request, response, view }) {
+    const categories =  await Category.all();
+    return response.json(categories);
   }
 
   /**
@@ -41,6 +44,14 @@ class CategoryController {
    * @param {Response} ctx.response
    */
   async store ({ request, response }) {
+    const {categoria} = request.all();
+    const NewCategoria = new Category();
+
+    NewCategoria.name = categoria.name 
+    NewCategoria.danger = categoria.danger
+
+    await NewCategoria.save()
+    return response.json(NewCategoria)
   }
 
   /**
@@ -76,6 +87,14 @@ class CategoryController {
    * @param {Response} ctx.response
    */
   async update ({ params, request, response }) {
+    const {id} = params;
+    const UpDcategoria = await Category.find(id)
+    const {categoria} = request.all();
+
+    UpDcategoria.name = categoria.name;
+    UpDcategoria.danger = categoria.danger;
+    await UpDcategoria.save();
+    return response.json(UpDcategoria);
   }
 
   /**
@@ -87,6 +106,10 @@ class CategoryController {
    * @param {Response} ctx.response
    */
   async destroy ({ params, request, response }) {
+    const {id} = params;
+    const Delcategoria = await Category.find(id)
+    await Delcategoria.delete();
+    return response.json(Delcategoria);
   }
 }
 

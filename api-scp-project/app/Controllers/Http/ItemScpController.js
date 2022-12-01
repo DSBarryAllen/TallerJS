@@ -1,4 +1,6 @@
 'use strict'
+const Helpers = use('Helpers');
+const ItemScp = use('App/Models/ItemScp');
 
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
@@ -18,6 +20,8 @@ class ItemScpController {
    * @param {View} ctx.view
    */
   async index ({ request, response, view }) {
+    const spcs = await ItemScp.all()
+    return response.json(spcs)
   }
 
   /**
@@ -40,7 +44,31 @@ class ItemScpController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store ({ request, response }) {
+  async store ({ auth,request, response }) {
+    const user = await auth.getUser();
+    const scp = request.all();
+    const newSpcs = new ItemScp();
+    const avatar = request.file('avatar',{
+        types:['image'],
+        size:'2mb'
+    })
+    
+    newSpcs.name        = scp.name
+    newSpcs.item        = scp.item
+    newSpcs.descrition = scp.descrition 
+    newSpcs.category_id = scp.category_id
+    newSpcs.user_id     = user.id
+    newSpcs.avatar = new Date().getTime()+"."+avatar.subtype;
+    await avatar.move(Helpers.publicPath('uploads'),{
+      name: newSpcs.avatar
+    })
+    if(!avatar.moved()){
+      return "ocurrio un error";
+    }
+    await newSpcs.save()
+     
+    
+    return response.json(newSpcs)
   }
 
   /**
@@ -76,6 +104,31 @@ class ItemScpController {
    * @param {Response} ctx.response
    */
   async update ({ params, request, response }) {
+    const user = await auth.getUser();
+    const scp = request.all();
+    const {id} = params;
+    const UdpSpcs = await ItemScp.find(id)
+    const avatar = request.file('avatar',{
+      types:['image'],
+      size:'2mb'
+    })
+    
+    UdpSpcs.name        = scp.name
+    UdpSpcs.item        = scp.item
+    UdpSpcs.descrition  = scp.descrition 
+    UdpSpcs.category_id = scp.category_id
+    UdpSpcs.user_id     = user.id
+    UdpSpcs.avatar = new Date().getTime()+"."+avatar.subtype;
+    await avatar.move(Helpers.publicPath('uploads'),{
+      name: UdpSpcs.avatar
+    })
+    if(!avatar.moved()){
+      return "ocurrio un error";
+    }
+
+    await UdpSpcs.save()
+
+    return response.json(UdpSpcs)
   }
 
   /**
@@ -87,6 +140,10 @@ class ItemScpController {
    * @param {Response} ctx.response
    */
   async destroy ({ params, request, response }) {
+    const {id} = params;
+    const DeleteSpcs = await ItemScp.find(id);
+    await DeleteSpcs.delete();
+    return response.json(DeleteSpcs);
   }
 }
 
